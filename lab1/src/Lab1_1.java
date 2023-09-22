@@ -1,10 +1,11 @@
 import java.util.Scanner;
 
-public class Main {
+public class Lab1_1 {
+
     public static void main(String[] args) {
-        int n = in();
-        int answer = solve(n);
-        out(answer);
+        int n = Lab1_1.in();
+        int answer = Lab1_1.solve(n);
+        Lab1_1.out(answer);
     }
     public static int in(){
         Scanner scanner = new Scanner(System.in);
@@ -28,11 +29,14 @@ public class Main {
                 tmp = 3*tmp + 1;
                 answer++;
             }
+//            System.out.format("%d ",tmp);
         }
 
         return answer;
     }
     public static void out(int answer){
+//        System.out.println("\n"+answer);
         System.out.println(answer);
-    }
+        }
 }
+
