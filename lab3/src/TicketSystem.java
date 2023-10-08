@@ -263,8 +263,8 @@ class Session{
     }
     public void buyASeat(int x, int y){
         if ( (x>0 && x<hallCfg.m) && (y>0 && y<hallCfg.n) ) {
-            if ( this.seating[x][y] == 1 ) {
-                this.seating[x][y] = 2;
+            if ( seating[y][x] == 1 ) { // их надо развернуть тут
+                seating[y][x] = 2;
                 System.out.println("you have successfully purchased a seat in the hall");
             } else System.out.println("this seat is unavailable, please choose another one"); // -1 \ 2
         } else System.out.println("your input is out of range, try again");

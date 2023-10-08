@@ -66,6 +66,9 @@ public class Test {
         Session s = ch.schedule.get(0);
         s.buyASeat(4, 4);
         s.printSession();
+        s.buyASeat(5, 2);
+        s.buyASeat(1, 2);
+        s.printSession();
 
     }
 
