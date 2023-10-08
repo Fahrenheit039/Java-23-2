@@ -270,8 +270,8 @@ class Session{
         } else System.out.println("your input is out of range, try again");
     }
     public void printSession(){
-        for (int i = 0; i < hallCfg.m; i++){
-            for (int j = 0; j < hallCfg.n; j++){
+        for (int i = 0; i < hallCfg.n; i++){
+            for (int j = 0; j < hallCfg.m; j++){
                 if (i > 0 && j > 0) {
                     String c;
 //                    c = (seating[i][j] == 2) ? "x" : "o";
@@ -298,13 +298,13 @@ class HallConfiguration {
         this.m = m + 1;
         this.matrix = new int[this.n][this.m];
 
-        for (int i = 0; i < this.m; i++) {
-            for (int j = 0; j < this.n; j++){
+        for (int i = 0; i < this.n; i++) {
+            for (int j = 0; j < this.m; j++){
                 if (i == 0 && j > 0) this.matrix[i][j] = j;
                 if (i > 0 && j == 0) this.matrix[i][j] = i;
                 if (i > 0 && j > 0) this.matrix[i][j] = 1;
             }
-        }
+        } // i бежит до n , j до m. твердо и четко
     }
     public void changeCfg(int x1, int y1, int x2, int y2, int key){
         if( (Math.min(x1, x2) < 1 || Math.min(y1, y2) < 1) || (Math.max(x1, x2) >= this.m || Math.max(y1, y2) >= this.n ) )
@@ -334,8 +334,8 @@ class HallConfiguration {
         }
     } //key = 0 - инвертирование \ 1 - все в области становятся доступны \ -1 - все в области становятся не доступны
     public void printCfg(){
-        for (int i = 0; i < this.m; i++){
-            for (int j = 0; j < this.n; j++){
+        for (int i = 0; i < this.n; i++){
+            for (int j = 0; j < this.m; j++){
                 if (i > 0 && j > 0) {
                     String c = (this.matrix[i][j] > 0) ? "+" : "-";
                     System.out.printf("%s ", c);
