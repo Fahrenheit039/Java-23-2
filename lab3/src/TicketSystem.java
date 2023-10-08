@@ -27,15 +27,6 @@ class MovieLibrary{
     public void print(){
         System.out.println( this.movieLibraryArray.toString() );
     }
-
-//    public void printLibrary(){
-//        printMap(movieLibraryMap);
-//    }
-//    private void printMap(final Map<?, ?> map) {
-//        for (final Map.Entry<?, ?> entry : map.entrySet()) {
-//            System.out.println(entry.getKey() + " " + entry.getValue());
-//        }
-//    }
 } // фильмы которые доступны владельцу сети кинотеатров
 class CinemaChain{
     protected ArrayList<Cinema> cinemaChainArray;
@@ -58,13 +49,19 @@ class CinemaChain{
     public void print(){
         System.out.println( this.cinemaChainArray.toString() );
     }
-} // кинотеатры которые есть у владельца сети
+} // сеть кинотеатров
 class Duration{
     protected int h, m, s;
-    public String print(){ return this.h +" "+ this.m +" "+ this.s; }
+    public String print(){ return this.h +":"+ this.m +":"+ this.s; }
+    protected Duration(){
+        this.h = 0;
+        this.m = 0;
+        this.s = 0;
+    }
     protected Duration(int h, int m){
         this.h = h;
         this.m = m;
+        this.s = 0;
     }
     protected Duration(int h, int m, int s){
         this.h = h;
@@ -82,16 +79,20 @@ class Movie {
     }
 } // фильм
 class Cinema {
+    private int id;
+    private static int counter = 0;
     private String name; //для поиска в списке кинозалов конкретного по имени
     public String getName(){ return this.name; }
     private String address;
     protected ArrayList<CinemaHalls> cinemaHalls;
     protected Cinema(String name){
+        this.id = counter++;
         this.name = name;
         this.address = "empty";
         this.cinemaHalls = new ArrayList<>();
     }
     protected Cinema(String name, String address){
+        this.id = counter++;
         this.name = name;
         this.address = address;
         this.cinemaHalls = new ArrayList<>();
@@ -103,6 +104,11 @@ class Cinema {
         this.cinemaHalls.remove(ch);
     }
     public boolean isIn(CinemaHalls ch) { return this.cinemaHalls.contains(ch); }
+    public int isIn(int id) {
+        for (CinemaHalls item : cinemaHalls)
+            if( item.getId() == id ) return this.cinemaHalls.indexOf(item); //а что мне мешает вернуть сразу объект?
+        return -1;
+    }
     public void print(){
         System.out.println( this.cinemaHalls.toString() );
     }
@@ -110,74 +116,177 @@ class Cinema {
 } // кинотеатр
 class CinemaHalls{
     private int id;
+    public int getId(){ return this.id; }
     private static int counter = 0;
-    protected HashMap<Duration, Movie> schedule; // <время начала фильма, фильм>
+//    protected HashMap<Duration, Movie> schedule; // <время начала фильма, фильм>
+    protected ArrayList<Session> schedule; // <время начала фильма, фильм>
     protected HallConfiguration hallCfg;
     public CinemaHalls(HallConfiguration hallCfg) {
         this.id = counter++;
-        this.schedule = new HashMap<Duration, Movie>();
+//        this.schedule = new HashMap<Duration, Movie>();
+        this.schedule = new ArrayList<Session>();
         this.hallCfg = hallCfg;
     }
 
-    public boolean isAvailableByTime(Duration dToCheck, Movie mToCheck){
-        final Map<?, ?> map = this.schedule;
-        for (final Map.Entry<?, ?> entry : map.entrySet()) {
-            Duration d = (Duration) entry.getKey();
-            Movie m = (Movie) entry.getValue();
-//            if (m == mToCheck) {}//совпадение по фильму нужно будет где-то в другом месте
-
-            if( d.h < mToCheck.d.h ){
-                Duration tmp = timeShiftCalc();
-                if (tmp.h <= mToCheck.d.h) {
-                    //TODO я здесь
-
+    private int isAvailableByTime(Duration dToCheck, Movie mToCheck){ // сделать его int и возвращать i?
+        int i = 0; // определяет 2 соседних сеанса в отсортированом списке от добавляемого
+        while ( i < schedule.size() ) {
+            Session tmp = schedule.get(schedule.indexOf(i));
+            Duration d = tmp.d;
+            Movie m = tmp.m;
+            if( d.h > mToCheck.d.h ) { break; } //пробег по отсортированному по времени списку
+            if( d.h < mToCheck.d.h ) { i++; }
+            if( d.h == mToCheck.d.h ) {
+                if( d.m > mToCheck.d.m ) { break; } //пробег по отсортированному по времени списку
+                if( d.m < mToCheck.d.m ) { i++; }
+                if( d.m == mToCheck.d.m ) {
+                    if( d.s > mToCheck.d.s ) { break; } //пробег по отсортированному по времени списку
+                    if( d.s <= mToCheck.d.s ) { i++; }
                 }
             }
-//            System.out.println( d.print() + " " + m.getName() );
         }
-        return true;
+        if (i == 0) return i; // if i==0 значит в коллекции 0 фильмов
+        if (i == schedule.size())  // if i = .size(), то у добавляемого фильма единственный сосед слева - посдедний элемент списка
+            if ( crossingSessions(dToCheck) ) { return i; } else { return -1; }
+        //если я дошел до этого момента, то у нужного времени есть 2 соседа: i = правый \ i-1 = левый
+        if ( crossingSessions(dToCheck, mToCheck, i) ) { return i; } else { return -1; }
     }
-    private Duration timeShiftCalc(){
-        return new Duration(0, 0);
-    }
-
+    private boolean crossingSessions(Duration dToCheck){
+        Session tmp = schedule.get(schedule.size()-1);
+        if ( tmp.d.h + tmp.m.d.h < dToCheck.h ) return true;
+        if ( tmp.d.h + tmp.m.d.h > dToCheck.h ) return false;
+        if ( tmp.d.h + tmp.m.d.h == dToCheck.h ) {
+            if( tmp.d.m + tmp.m.d.m < dToCheck.m ) { return true; }
+            if( tmp.d.m + tmp.m.d.m > dToCheck.m ) { return false; }
+            if( tmp.d.m + tmp.m.d.m == dToCheck.m ) {
+                if( tmp.d.s + tmp.m.d.s < dToCheck.s ) { return true; }
+                if( tmp.d.s + tmp.m.d.s >= dToCheck.s ) { return false; }
+            }
+        }
+        return false; // все варианты учтены выше. тут отбивка
+    } // true = не пересекаются
+    private boolean crossingSessions(Duration dToCheck, Movie mToCheck, int i){
+        int flag = 0; // 2 = обе границы в порядке \\ можно будет просто убрать позже вместе с условиями flag++;
+//        #1
+        Session tmp = schedule.get(i-1);
+        if ( tmp.d.h + tmp.m.d.h < dToCheck.h ) flag++;
+        if ( tmp.d.h + tmp.m.d.h > dToCheck.h ) return false;
+        if ( tmp.d.h + tmp.m.d.h == dToCheck.h ) {
+            if( tmp.d.m + tmp.m.d.m < dToCheck.m ) { flag++; }
+            if( tmp.d.m + tmp.m.d.m > dToCheck.m ) { return false; }
+            if( tmp.d.m + tmp.m.d.m == dToCheck.m ) {
+                if( tmp.d.s + tmp.m.d.s < dToCheck.s ) { flag++; }
+                if( tmp.d.s + tmp.m.d.s >= dToCheck.s ) { return false; }
+            }
+        }
+//        #2
+        tmp = schedule.get(i);
+        if ( dToCheck.h + mToCheck.d.h < tmp.d.h ) flag++;
+        if ( dToCheck.h + mToCheck.d.h > tmp.d.h ) return false;
+        if ( dToCheck.h + mToCheck.d.h == tmp.d.h ) {
+            if( dToCheck.m + mToCheck.d.m < tmp.d.m ) { flag++; }
+            if( dToCheck.m + mToCheck.d.m > tmp.d.m ) { return false; }
+            if( dToCheck.m + mToCheck.d.m == tmp.d.m ) {
+                if( dToCheck.s + mToCheck.d.s < tmp.d.s ) { flag++; }
+                if( dToCheck.s + mToCheck.d.s >= tmp.d.s ) { return false; }
+            }
+        }
+        if (flag == 2) return true;
+        return false; // все варианты учтены выше. тут отбивка
+    } // true = не пересекаются
     public void createSession(Duration d, Movie m){
-        if (isAvailableByTime(d, m)) schedule.put(d, m);
+        Session tmp = new Session(d, m);
+        if (tmp.getFinishTime().h > 23) { System.out.println("Pls, change movie start time. U out of a day range"); tmp = null; return; }
+
+        int i = isAvailableByTime(d, m);
+        if ( i < 0 ) { System.out.println("Current time is already reserved"); return; }
+        if ( i == schedule.size() ) {
+            schedule.add(new Session(d, m, hallCfg));
+            System.out.println("Session is successfully created");
+            return;
+        }
+        if ( i >= 0 && i < schedule.size() ) {
+            System.out.println("Session is successfully created");
+            schedule.add(i, new Session(d, m, hallCfg)); //add и remove сдвигают остальной список по индексам автоматически +rep
+        }
     }
     public void printSchedule(){
-        final Map<?, ?> map = this.schedule;
-        for (final Map.Entry<?, ?> entry : map.entrySet()) {
-            Duration d = (Duration) entry.getKey();
-            Movie m = (Movie) entry.getValue();
-            System.out.println( d.print() + " " + m.getName() );
-        }
+//        final Map<?, ?> map = this.schedule;
+//        for (final Map.Entry<?, ?> entry : map.entrySet()) {
+//            Duration d = (Duration) entry.getKey();
+//            Movie m = (Movie) entry.getValue();
+//            System.out.println( d.print() + " " + m.getName() );
+//        }
+        for (Session item : schedule) { System.out.println( item.d.print() +" - "+ item.getFinishTime().print() +" "+ item.m.getName() +" ("+ item.m.d.print() +")" ); }
     }
 //    public void deleteSession(Duration d, Movie m){
 //        if (isAvailable(d, m)) schedule.put(d, m);
 //    }
-}
+} // кинозал
 
 class Session{
-    private CinemaHalls ch;
-    private Duration d;
-    private Movie m;
+    protected Duration d;
+    protected Movie m;
+    //    private CinemaHalls ch;
+    private HallConfiguration hallCfg;
     private int[][] seating; //копируем рассадку при конструкторе, дальше в сессии контролируем купленные места
 
-    public Session(CinemaHalls ch, Duration d, Movie m) {
-        this.ch = ch;
+//    public Session(Duration d, Movie m, CinemaHalls ch) {
+    public Session(Duration d, Movie m) {
         this.d = d;
         this.m = m;
-        this.seating = this.ch.hallCfg.matrix; // я по идее чет должен тут зафиксировать, а то сломается. хз
+    }
+    public Session(Duration d, Movie m, HallConfiguration hallCfg) {
+        this.d = d;
+        this.m = m;
+//        this.ch = ch;
+        this.hallCfg = hallCfg;
+        this.seating = hallCfg.matrix; // я по идее чет должен тут зафиксировать, а то сломается. хз
+    }
+    public Duration getFinishTime(){
+        Duration dTmp = new Duration();
+        if (this.d.s + this.m.d.s >= 60) {
+            dTmp.s = this.d.s + this.m.d.s - 60;
+            dTmp.m++;
+        } else { dTmp.s = this.d.s + this.m.d.s; }
+        if (this.d.m + this.m.d.m + dTmp.m >= 60) {
+            dTmp.m += this.d.m + this.m.d.m - 60;
+            dTmp.h++;
+        } else { dTmp.m += this.d.m + this.m.d.m; }
+//        if (this.d.h + this.m.d.h + dTmp.h >= 24) {
+//            dTmp.h += this.d.h + this.m.d.h - 24; //TODO: так правильно, но тогда нужны даты, недели и тд.
+            dTmp.h += this.d.h + this.m.d.h; //поэтому вот так, для сравнения
+//        }
+//        dTmp.s = (this.d.s + this.m.d.s >= 60)? (this.d.s + this.m.d.s - 60) : (this.d.s + this.m.d.s);
+
+        return dTmp;
     }
     public void buyASeat(int x, int y){
-        if ( (x>0 && x<this.ch.hallCfg.m) && (y>0 && y<this.ch.hallCfg.n) ) {
+        if ( (x>0 && x<hallCfg.m) && (y>0 && y<hallCfg.n) ) {
             if ( this.seating[x][y] == 1 ) {
                 this.seating[x][y] = 2;
                 System.out.println("you have successfully purchased a seat in the hall");
             } else System.out.println("this seat is unavailable, please choose another one"); // -1 \ 2
         } else System.out.println("your input is out of range, try again");
     }
-}
+    public void printSession(){
+        for (int i = 0; i < hallCfg.m; i++){
+            for (int j = 0; j < hallCfg.n; j++){
+                if (i > 0 && j > 0) {
+                    String c;
+//                    c = (seating[i][j] == 2) ? "x" : "o";
+                    if ( seating[i][j] == 2 ) c = "x";
+                    else if ( seating[i][j] == 1 ) c = "o";
+                    else c = " ";
+                    System.out.printf("%s ", c);
+                }
+                else System.out.printf("%d ", seating[i][j]);
+            }
+            System.out.println();
+        }
+        System.out.println();
+    }
+} // сеанс (зал, во сколько, фильм) + рассадка
 
 class HallConfiguration {
     private String nameTypeCfg;
@@ -242,46 +351,9 @@ class HallConfiguration {
 
 
 public class TicketSystem {
-    static MovieLibrary movies = new MovieLibrary();
-    static CinemaChain cinemas = new CinemaChain();
-
-    public void buyATicket(){}
-//    public  nextSession(Movie m){}
-    public void print(Movie m){}
-
-
     public static void main(String[] args){
-        movies.add( new Movie("robokop", new Duration(2, 30)) );
-        movies.add( new Movie("rembo", new Duration(3, 00)) );
-        movies.add( new Movie("film1", new Duration(1, 30)) );
-
-        cinemas.add( new Cinema("kinoteatr_1") );
-        cinemas.add( new Cinema("kinoteatr_2", "moscow") );
-
-        int index_cinema = cinemas.isIn("kinoteatr_2"); //в этой и следующей строчке проверка на существование интересующего кинотеатра
-        if (index_cinema > -1) cinemas.cinemaChainArray.get(index_cinema).addHall(new CinemaHalls(new HallConfiguration("casual",6,6)));
-        if (index_cinema > -1) cinemas.cinemaChainArray.get(index_cinema).addHall(new CinemaHalls(new HallConfiguration("test",7,7)));
-
-        int index_cinemaHall = cinemas.isIn("kinoteatr_2"); //проверка на существование зала
-        if (index_cinemaHall > -1) {
-//            cinemas.cinemaChainArray.get(index_cinema).cinemaHalls.get(index_cinemaHall).hallCfg.printCfg();
-            cinemas.cinemaChainArray.get(index_cinema).cinemaHalls.get(index_cinemaHall).hallCfg.changeCfg(2,2, 4,4, -1);
-//            cinemas.cinemaChainArray.get(index_cinema).cinemaHalls.get(index_cinemaHall).hallCfg.printCfg();
-            cinemas.cinemaChainArray.get(index_cinema).cinemaHalls.get(index_cinemaHall).hallCfg.changeCfg(1,1, 5,5, 0);
-//            cinemas.cinemaChainArray.get(index_cinema).cinemaHalls.get(index_cinemaHall).hallCfg.printCfg();
-            cinemas.cinemaChainArray.get(index_cinema).cinemaHalls.get(index_cinemaHall).hallCfg.changeCfg(1,1, 5,1, 1);
-            cinemas.cinemaChainArray.get(index_cinema).cinemaHalls.get(index_cinemaHall).hallCfg.printCfg();
-        }
-
-        int index_movie = movies.isIn("rembo"); //в этой и следующей строчке проверка на существование интересующего кинотеатра
-        cinemas.cinemaChainArray.get(index_cinema).cinemaHalls.get(index_cinemaHall).createSession(new Duration(9,0), movies.movieLibraryArray.get(index_movie));
-
-//        int tmpSession = movies.isIn("rembo"); //в этой и следующей строчке проверка на существование интересующего кинотеатра
-//        cinemas.cinemaChainArray.get(index_cinema).cinemaHalls.get(index_cinemaHall)..get(index_cinemaHall).createSession(new Duration(9,0), movies.movieLibraryArray.get(index_movie));
-        cinemas.cinemaChainArray.get(index_cinema).cinemaHalls.get(index_cinemaHall).printSchedule();
-
-
-
+        Test t1 = new Test(new MovieLibrary(), new CinemaChain());
+        t1.main();
     }
 
 }
