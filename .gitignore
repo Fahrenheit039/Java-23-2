@@ -1,11 +1,10 @@
-/.idea/
-/out/
+/*
+!/lab1/
+!/lab2/
+!/lab3/
+#!/contest/
+/lab1/src/Main.java
+#!/lab1/Program1.java
 
-# Default ignored files
-/shelf/
-/.idea/workspace.xml
-# Editor-based HTTP Client requests
-/httpRequests/
-# Datasource local storage ignored files
-/dataSources/
-/dataSources.local.xml
+#/.idea/
+#/out/
