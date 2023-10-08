@@ -68,11 +68,29 @@ class Duration{
         this.m = m;
         this.s = s;
     }
+    public boolean comp_duration(Duration d){
+        if (this.h == -1 && this.m == -1 && this.s == -1) return true;
+
+        if ( this.h > d.h ) return true;
+        if ( this.h < d.h ) return false;
+        if ( this.h == d.h ) {
+            if( this.m > d.m ) { return true; }
+            if( this.m < d.m ) { return false; }
+            if( this.m == d.m ) {
+                if( this.s > d.s ) { return true; }
+                if( this.s <= d.s ) { return false; }
+            }
+        }
+        return false;
+    } // true = this. меньше , false = больше либо равно
 } // время фильма, и время начала сеанса по расписанию
 class Movie {
     private String name;
     public String getName(){ return this.name; }
     protected Duration d;
+    protected Movie(String name){
+        this.name = name;
+    } // для поиска
     protected Movie(String name, Duration d){
         this.name = name;
         this.d = d;
@@ -131,7 +149,8 @@ class CinemaHalls{
     private int isAvailableByTime(Duration dToCheck, Movie mToCheck){ // сделать его int и возвращать i?
         int i = 0; // определяет 2 соседних сеанса в отсортированом списке от добавляемого
         while ( i < schedule.size() ) {
-            Session tmp = schedule.get(schedule.indexOf(i));
+//            Session tmp = schedule.get(schedule.indexOf(i)); // TODO: 08.10.2023 у меня тут indexOf(индекс принимает). а должен объект
+            Session tmp = schedule.get(i);
             Duration d = tmp.d;
             Movie m = tmp.m;
             if( d.h > mToCheck.d.h ) { break; } //пробег по отсортированному по времени списку
@@ -200,12 +219,12 @@ class CinemaHalls{
 
         int i = isAvailableByTime(d, m);
         if ( i < 0 ) { System.out.println("Current time is already reserved"); return; }
-        if ( i == schedule.size() ) {
+        if ( i == 0 || i == schedule.size() ) {
             schedule.add(new Session(d, m, hallCfg));
             System.out.println("Session is successfully created");
             return;
         }
-        if ( i >= 0 && i < schedule.size() ) {
+        if ( i > 0 && i < schedule.size() ) {
             System.out.println("Session is successfully created");
             schedule.add(i, new Session(d, m, hallCfg)); //add и remove сдвигают остальной список по индексам автоматически +rep
         }
@@ -219,11 +238,13 @@ class CinemaHalls{
 //        }
         for (Session item : schedule) { System.out.println( item.d.print() +" - "+ item.getFinishTime().print() +" "+ item.m.getName() +" ("+ item.m.d.print() +")" ); }
     }
-//    public void deleteSession(Duration d, Movie m){
-//        if (isAvailable(d, m)) schedule.put(d, m);
-//    }
+    public void printSchedule(Session s){
+        for (Session item : schedule) {
+            if (item.equals(s))
+                System.out.println( item.d.print() +" - "+ item.getFinishTime().print() +" "+ item.m.getName() +" ("+ item.m.d.print() +")" );
+        }
+    }
 } // кинозал
-
 class Session{
     protected Duration d;
     protected Movie m;
@@ -232,6 +253,12 @@ class Session{
     private int[][] seating; //копируем рассадку при конструкторе, дальше в сессии контролируем купленные места
 
 //    public Session(Duration d, Movie m, CinemaHalls ch) {
+    public Session(Movie m) {
+    this.m = m;
+}
+    public Session(Duration d) {
+        this.d = d;
+    } // для поиска
     public Session(Duration d, Movie m) {
         this.d = d;
         this.m = m;
@@ -262,6 +289,7 @@ class Session{
         return dTmp;
     }
     public void buyASeat(int x, int y){
+        System.out.print(x+ " " +y+ " \\ "); // TODO: 08.10.2023  для консоли надо будет убрать
         if ( (x>0 && x<hallCfg.m) && (y>0 && y<hallCfg.n) ) {
             if ( seating[y][x] == 1 ) { // их надо развернуть тут
                 seating[y][x] = 2;
@@ -287,7 +315,6 @@ class Session{
         System.out.println();
     }
 } // сеанс (зал, во сколько, фильм) + рассадка
-
 class HallConfiguration {
     private String nameTypeCfg;
     protected int n, m;
@@ -346,14 +373,15 @@ class HallConfiguration {
         }
         System.out.println();
     }
-} // название рассадки и размеры
+} // рассадка в зале
 
 
-
+// TODO: 08.10.2023 теперь надо в бесконечный цикл. кайнд оф реалтайм програм, ю ноу
 public class TicketSystem {
     public static void main(String[] args){
         Test t1 = new Test(new MovieLibrary(), new CinemaChain());
         t1.main();
+        t1.nextSession(new Movie("rembo"));
     }
 
 }

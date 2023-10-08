@@ -9,13 +9,57 @@ public class Test {
 //    }
 //static MovieLibrary movies = new MovieLibrary();
 //    static CinemaChain cinemas = new CinemaChain();
-
     static MovieLibrary movies; // = new MovieLibrary();
     static CinemaChain cinemas; // = new CinemaChain();
+    private class Closer{
+        Cinema c_c;
+        CinemaHalls c_ch;
+        Session c_s;
+        public Closer(){
+            this.c_s = new Session(new Duration());
+            this.c_s.d.h = -1;
+            this.c_s.d.m = -1;
+            this.c_s.d.s = -1;
+        }
+        public Closer(Cinema c_c, CinemaHalls c_ch, Session c_s){
+            this.c_c = c_c;
+            this.c_ch = c_ch;
+            this.c_s = c_s;
+        }
+    }
+    public void nextSession(Movie m){
+        Session tmp = new Session(m);
+        Closer total = new Closer();
 
+        for ( Cinema c : cinemas.cinemaChainArray ) {
+            boolean flag = false;
+            for ( CinemaHalls ch : c.cinemaHalls ) {
+                for ( Session s : ch.schedule ) {
+                    if ( s.m.getName().equals(m.getName()) ) {
+                        if ( total.c_s.d.comp_duration(s.d) ) total = set_closer(c, ch, s);
+                        flag = true;
+                        break;
+                    }
+                }
+                if (flag) break;
+            }
+        }
+        print(total);
+    } // поиск интересующего фильма в ближайшее время в любом кинотеатре сети
+    private Closer set_closer(Cinema c, CinemaHalls ch, Session s){
+        Closer cl = new Closer();
+        cl.c_c = c;
+        cl.c_ch = ch;
+        cl.c_s = s;
+        return cl;
+    }
+    private void print(Closer cl){
+        System.out.println( "\ncinema name : "+ cl.c_c.getName() +" \\\\ hall id : "+ cl.c_ch.getId() );
+        cl.c_ch.printSchedule(cl.c_s);
+        cl.c_s.printSession();
+        System.out.println();
+    }
     public void buyATicket(){}
-    //    public  nextSession(Movie m){}
-    public void print(Movie m){}
 
     public Test(MovieLibrary movies, CinemaChain cinemas){
         this.movies = movies;
@@ -61,6 +105,7 @@ public class Test {
 
         int index_movie = movies.isIn("rembo"); //проверка на существование фильма
         if (index_movie != -1) ch.createSession(new Duration(9,0), movies.movieLibraryArray.get(index_movie));
+        if (index_movie != -1) ch.createSession(new Duration(18,0), movies.movieLibraryArray.get(index_movie));
         ch.printSchedule();
 
         Session s = ch.schedule.get(0);
@@ -69,6 +114,11 @@ public class Test {
         s.buyASeat(5, 2);
         s.buyASeat(1, 2);
         s.printSession();
+        s.buyASeat(1, 2);
+
+        ch.printSchedule(s);
+
+
 
     }
 
