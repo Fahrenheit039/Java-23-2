@@ -74,14 +74,26 @@ public class Test {
 
         return true;
     }
+    protected String keySetter(Scanner scanner){
+        String tmp = scanner.nextLine();;
+        int i;
+        while( true ) {
+            if (tmp.equals("-1")) break;
+            if (tmp.equals("0")) break;
+            if (tmp.equals("1")) break;
+            System.out.println("key input is wrong. try again");
+            tmp = scanner.nextLine();
+        }
+        return tmp;
+    }
     protected String intSetter(Scanner scanner, int params){
         String tmp = scanner.nextLine();
         String[] parts = tmp.split(" ");
         int i;
         boolean flag = false;
-        while ( !flag ) {
-            for ( i = 0; i < params; i++) if ( !isNumeric(parts[i]) ) break;
-            if ( i == params ) break;
+        while (!flag) {
+            for (i = 0; i < params; i++) if (!isNumeric(parts[i])) break;
+            if (i == params) break;
             System.out.println("your input is wrong. try again");
             tmp = scanner.nextLine();
             parts = tmp.split(" ");
@@ -96,12 +108,15 @@ public class Test {
         }
         return Integer.parseInt(tmp);
     }
+    private static boolean isNegativeNumeric(String str){
+        return str != null && str.substring(0, 1).equals("-") && str.matches("[0-9]+");
+    }
     private static boolean isNumeric(String str){
         return str != null && str.matches("[0-9]+");
     }
     private String admin_login = "admin", admin_pass = "admin";
     private String user_login = "user", user_pass = "";
-    protected int auth(Scanner scanner){
+    protected String auth(Scanner scanner){
         System.out.print("login : ");
         String login = scanner.nextLine();
 
@@ -109,9 +124,9 @@ public class Test {
         System.out.print("password : ");
         String password = scanner.nextLine();
 
-        if (admin_login.equals(login) && admin_pass.equals(password)) return 2;
-        else if (user_login.equals(login) && user_pass.equals(password)) return 1;
-        else return 0;
+        if (admin_login.equals(login) && admin_pass.equals(password)) return "admin";
+        else if (user_login.equals(login) && user_pass.equals(password)) return "user";
+        else return "try-again";
     }
 
     public Test(MovieLibrary movies, CinemaChain cinemas){

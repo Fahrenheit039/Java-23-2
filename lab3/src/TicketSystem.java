@@ -459,190 +459,201 @@ public class TicketSystem {
         System.out.println("Welcome to the Ticket System Program");
 
         Scanner scanner = new Scanner(System.in);
-        int sa;
-        while ( (sa = t1.auth(scanner)) == 0 ) { System.out.println("wrong login or pass. try again"); }
+        String sa;
+        while ( (sa =  t1.auth(scanner)).equals("try-again") ) { System.out.println("wrong login or pass. try again"); }
 
         String cinema_name, hall_type, hall_cfg_change, movie_name, movie_duration, movie_time_start, xy_pos;
         int hall_n, hall_m, cinema_hall_id;
         String[] parts;
 
-        String command = "start";
+        String command;
         Test.Closer struct = new Test.Closer();
-        switch (sa) {
-            case(1):
-                System.out.println("You are entire as a User");
-                while( !command.equals("exit") ) {
-                    switch (command) {
-                        case ("6"): // show movies library
-                            if ( t1.movies.movieLibraryArray.size() < 1 ) { System.out.println("Movie Library is empty"); break; }
-                            System.out.println("List of available movies:");
-                            t1.movies.print();
-                            break;
-                        case ("a"): // buy a ticket
-                            if ( ! t1.foolTest(struct, 6) ) break; // TODO: 10.10.2023 тут чет с проверкой криво. вернуться после сеттеров
 
-                            System.out.print("enter <x, y> pos seating place : ");
-                            xy_pos = t1.intSetter(scanner, 2);
-                            parts = xy_pos.split(" ");
-                            struct.c_s.buyASeat( Integer.parseInt(parts[0]), Integer.parseInt(parts[1] ) );
-                            break;
-                        case ("s"): // search next closed Movie
-                            if ( t1.movies.movieLibraryArray.size() < 1) { System.out.println("Movies Library is empty"); break; }
-                            System.out.print("enter movie name for search : ");
-                            movie_name = scanner.nextLine();
-                            struct = t1.nextSession(new Movie(movie_name));
-                            break;
-                        default:break;
+        while ( !sa.equals("exit") ) {
+            command = "";
+            switch (sa) {
+                case("user"):
+                    System.out.println("You are entire as a User");
+                    while( !command.equals("exit") ) {
+                        switch (command) {
+                            case ("6"): // show movies library
+                                if ( t1.movies.movieLibraryArray.size() < 1 ) { System.out.println("Movie Library is empty"); break; }
+                                System.out.println("List of available movies:");
+                                t1.movies.print();
+                                break;
+                            case ("a"): // buy a ticket
+                                if ( ! t1.foolTest(struct, 6) ) break; // TODO: 10.10.2023 тут чет с проверкой криво. вернуться после сеттеров
+
+                                System.out.print("enter <x, y> pos seating place : ");
+                                xy_pos = t1.intSetter(scanner, 2);
+                                parts = xy_pos.split(" ");
+                                struct.c_s.buyASeat( Integer.parseInt(parts[0]), Integer.parseInt(parts[1] ) );
+                                break;
+                            case ("s"): // search next closed Movie
+                                if ( t1.movies.movieLibraryArray.size() < 1) { System.out.println("Movies Library is empty"); break; }
+                                System.out.print("enter movie name for search : ");
+                                movie_name = scanner.nextLine();
+                                struct = t1.nextSession(new Movie(movie_name));
+                                break;
+                            case ("menu"): // menu
+                                System.out.println("6 - show movies library");
+                                System.out.println("a - buy a ticket");
+                                System.out.println("s - search next closed Movie");
+                                break;
+                            default:break;
+                        }
+                        System.out.print("next command : ");
+                        scanner = new Scanner(System.in);
+                        command = scanner.nextLine();
                     }
-                    scanner = new Scanner(System.in);
-                    command = scanner.nextLine();
-                }
-                break; // TODO: 10.10.2023 продоблировать после admin'a : 6, a, s
-            case(2):
-                System.out.println("You are entire with Admin roots!!");
-                while( !command.equals("exit") ) {
-                    switch (command) {
-                        case ("1"): // add new cinema
-                            System.out.print("Enter the name for your next Cinema : ");
-                            cinema_name = scanner.nextLine(); // здесь строка любая. абсолютно
-                            t1.cinemas.add( new Cinema(cinema_name) );
-                            System.out.println("success");
-                            break;
-                        case ("q"): // set cinema
-                            if ( ! t1.foolTest(struct, 1) ) break;
+                    break;
+                case("admin"):
+                    System.out.println("You are entire with Admin roots!!");
+                    while( !command.equals("exit") ) {
+                        switch (command) {
+                            case ("1"): // add new cinema
+                                System.out.print("Enter the name for your next Cinema : ");
+                                cinema_name = scanner.nextLine(); // здесь строка любая. абсолютно
+                                t1.cinemas.add( new Cinema(cinema_name) );
+                                System.out.println("success");
+                                break;
+                            case ("q"): // set cinema
+                                if ( ! t1.foolTest(struct, 1) ) break;
 
-                            System.out.print("set an active Cinema by name : ");
-                            cinema_name = scanner.nextLine(); // any string
+                                System.out.print("set an active Cinema by name : ");
+                                cinema_name = scanner.nextLine(); // any string
 
-                            int index_cinema = t1.cinemas.isIn(cinema_name);
-                            if (index_cinema > -1) {
-                                struct.c_c = t1.cinemas.cinemaChainArray.get(index_cinema);
-                                System.out.println("Chosen Cinema : "+ struct.c_c.getName());
-                            } else { System.out.println("that name was not found"); }
-                            break;
-                        case ("2"): // add new cinema hall + configuration
-                            if ( ! t1.foolTest(struct, 2) ) break;
+                                int index_cinema = t1.cinemas.isIn(cinema_name);
+                                if (index_cinema > -1) {
+                                    struct.c_c = t1.cinemas.cinemaChainArray.get(index_cinema);
+                                    System.out.println("Chosen Cinema : "+ struct.c_c.getName());
+                                } else { System.out.println("that name was not found"); }
+                                break;
+                            case ("2"): // add new cinema hall + configuration
+                                if ( ! t1.foolTest(struct, 2) ) break;
 
-                            System.out.println("Enter Hall Configuration");
-                            System.out.print("name of type : ");
-                            hall_type = scanner.nextLine(); // any str
-                            System.out.println("N x M size : ");
-                            System.out.print("N = ");
-                            hall_n = t1.intSetter(scanner);
-                            System.out.print("M = ");
-                            hall_m = t1.intSetter(scanner);
-                            struct.c_c.addHall(new CinemaHalls(new HallConfiguration(hall_type, hall_n, hall_m)));
-                            System.out.println("success");
-                            break;
-                        case ("w"): // set cinema hall
-                            if ( ! t1.foolTest(struct, 3) ) break;
+                                System.out.println("Enter Hall Configuration");
+                                System.out.print("name of type : ");
+                                hall_type = scanner.nextLine(); // any str
+                                System.out.println("N x M size : ");
+                                System.out.print("N = ");
+                                hall_n = t1.intSetter(scanner);
+                                System.out.print("M = ");
+                                hall_m = t1.intSetter(scanner);
+                                struct.c_c.addHall(new CinemaHalls(new HallConfiguration(hall_type, hall_n, hall_m)));
+                                System.out.println("success");
+                                break;
+                            case ("w"): // set cinema hall
+                                if ( ! t1.foolTest(struct, 3) ) break;
 
-                            System.out.print("set an active Cinema Hall by id : ");
-                            cinema_hall_id = t1.intSetter(scanner);
+                                System.out.print("set an active Cinema Hall by id : ");
+                                cinema_hall_id = t1.intSetter(scanner);
 
-                            int index_cinemaHall = struct.c_c.isIn(cinema_hall_id);
-                            if (index_cinemaHall > -1) {
-                                struct.c_ch = struct.c_c.cinemaHalls.get(index_cinemaHall);
-                                System.out.println("Chosen Cinema Hall : "+ struct.c_ch.getId());
-                            } else { System.out.println("that id was not found"); }
-                            break;
-                        case ("3"): // create session
-                            if ( ! t1.foolTest(struct, 4) ) break;
+                                int index_cinemaHall = struct.c_c.isIn(cinema_hall_id);
+                                if (index_cinemaHall > -1) {
+                                    struct.c_ch = struct.c_c.cinemaHalls.get(index_cinemaHall);
+                                    System.out.println("Chosen Cinema Hall : "+ struct.c_ch.getId());
+                                } else { System.out.println("that id was not found"); }
+                                break;
+                            case ("3"): // create session
+                                if ( ! t1.foolTest(struct, 4) ) break;
 
-                            System.out.print("enter the Name of movie : ");
-                            movie_name = scanner.nextLine();
+                                System.out.print("enter the Name of movie : ");
+                                movie_name = scanner.nextLine();
 
-                            System.out.print("what time does the movie start <hours, minutes> : ");
-                            movie_time_start = t1.intSetter(scanner, 2);
-                            parts = movie_time_start.split(" ");
+                                System.out.print("what time does the movie start <hours, minutes> : ");
+                                movie_time_start = t1.intSetter(scanner, 2);
+                                parts = movie_time_start.split(" ");
 
-                            int index_movie = t1.movies.isIn(movie_name);
-                            if (index_movie > -1) {
-                                struct.c_ch.createSession(new Duration( Integer.parseInt(parts[0]), Integer.parseInt(parts[1] ) ), t1.movies.movieLibraryArray.get(index_movie));
-                            } else { System.out.println("something going wrong"); }
-                            break;
-                        case ("e"): // set session
-                            if ( ! t1.foolTest(struct, 5) ) break;
+                                int index_movie = t1.movies.isIn(movie_name);
+                                if (index_movie > -1) {
+                                    struct.c_ch.createSession(new Duration( Integer.parseInt(parts[0]), Integer.parseInt(parts[1] ) ), t1.movies.movieLibraryArray.get(index_movie));
+                                } else { System.out.println("something going wrong"); }
+                                break;
+                            case ("e"): // set session
+                                if ( ! t1.foolTest(struct, 5) ) break;
 
-                            System.out.print("enter id of session : ");
-                            int session_id = t1.intSetter(scanner);
-                            if ( struct.c_ch.schedule.size() <= session_id ) { System.out.println("your input is out of range"); break; }
+                                System.out.print("enter id of session : ");
+                                int session_id = t1.intSetter(scanner);
+                                if ( struct.c_ch.schedule.size() <= session_id ) { System.out.println("your input is out of range"); break; }
 
-                            struct.c_s = struct.c_ch.schedule.get(session_id);
-                            System.out.println( "Chosen Session : ");
-                            struct.c_ch.printSchedule(struct.c_s);
-                            break;
-                        case ("4"): // change chosen cinema hall configuration
-                            if ( ! t1.foolTest(struct, 4) ) break;
+                                struct.c_s = struct.c_ch.schedule.get(session_id);
+                                System.out.println( "Chosen Session : ");
+                                struct.c_ch.printSchedule(struct.c_s);
+                                break;
+                            case ("4"): // change chosen cinema hall configuration
+                                if ( ! t1.foolTest(struct, 4) ) break;
 
-                            System.out.print("changing Hall Configuration.\nbefore: \n");
-                            struct.c_ch.hallCfg.printCfg();
-                            System.out.println("Enter area <x1, y1, x2, y2, key>, ");
-                            System.out.println("key = -1 : everything in area is unavailable \\ key = 1 : everything in area is available \\ key = 0 : reverse ");
-                            hall_cfg_change = t1.intSetter(scanner, 5);
-                            parts = hall_cfg_change.split(" ");
-                            struct.c_ch.hallCfg.changeCfg( Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), Integer.parseInt(parts[2]), Integer.parseInt(parts[3]), Integer.parseInt(parts[4]));
-                            System.out.print("\nafter: \n");
-                            struct.c_ch.hallCfg.printCfg();
-                            break;
-                        case ("5"): // add new movie to library
-                            System.out.println("Enter new movie Name and Duration: ");
-                            System.out.print("name : ");
-                            movie_name = scanner.nextLine();
-                            System.out.print("Duration <hours, minutes> : ");
-                            movie_duration = t1.intSetter(scanner, 2);
-                            parts = movie_duration.split(" ");
-                            t1.movies.add( new Movie( movie_name, new Duration( Integer.parseInt(parts[0]), Integer.parseInt(parts[1] )) ) );
-                            break;
-                        case ("6"): // show movies library
-                            if ( t1.movies.movieLibraryArray.size() < 1 ) { System.out.println("Movie Library is empty"); break; }
-                            System.out.println("List of available movies:");
-                            t1.movies.print();
-                            break;
-                        case ("7"): // show c.ch schedule
-                            if ( ! t1.foolTest(struct, 4) ) break;
-                            System.out.println("schedule:");
-                            struct.c_ch.printSchedule();
-                            break;
-                        case ("a"): // buy a ticket
-                            if ( ! t1.foolTest(struct, 6) ) break; // TODO: 10.10.2023 тут чет с проверкой криво. вернуться после сеттеров
+                                System.out.print("changing Hall Configuration.\nbefore: \n");
+                                struct.c_ch.hallCfg.printCfg();
+                                System.out.println("Enter area <x1, y1, x2, y2>, ");
+                                hall_cfg_change = t1.intSetter(scanner, 4);
+                                parts = hall_cfg_change.split(" ");
+                                System.out.println("key = -1 : everything in area is unavailable \\ key = 1 : everything in area is available \\ key = 0 : reverse ");
+                                hall_cfg_change = t1.keySetter(scanner);
+                                struct.c_ch.hallCfg.changeCfg( Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), Integer.parseInt(parts[2]), Integer.parseInt(parts[3]), Integer.parseInt(hall_cfg_change));
+                                System.out.print("\nafter: \n");
+                                struct.c_ch.hallCfg.printCfg();
+                                break;
+                            case ("5"): // add new movie to library
+                                System.out.println("Enter new movie Name and Duration: ");
+                                System.out.print("name : ");
+                                movie_name = scanner.nextLine();
+                                System.out.print("Duration <hours, minutes> : ");
+                                movie_duration = t1.intSetter(scanner, 2);
+                                parts = movie_duration.split(" ");
+                                t1.movies.add( new Movie( movie_name, new Duration( Integer.parseInt(parts[0]), Integer.parseInt(parts[1] )) ) );
+                                break;
+                            case ("6"): // show movies library
+                                if ( t1.movies.movieLibraryArray.size() < 1 ) { System.out.println("Movie Library is empty"); break; }
+                                System.out.println("List of available movies:");
+                                t1.movies.print();
+                                break;
+                            case ("7"): // show c.ch schedule
+                                if ( ! t1.foolTest(struct, 4) ) break;
+                                System.out.println("schedule:");
+                                struct.c_ch.printSchedule();
+                                break;
+                            case ("a"): // buy a ticket
+                                if ( ! t1.foolTest(struct, 6) ) break; // TODO: 10.10.2023 тут чет с проверкой криво. вернуться после сеттеров
 
-                            System.out.print("enter <x, y> pos seating place : ");
-                            xy_pos = t1.intSetter(scanner, 2);
-                            parts = xy_pos.split(" ");
-                            struct.c_s.buyASeat( Integer.parseInt(parts[0]), Integer.parseInt(parts[1] ) );
-                            break;
-                        case ("s"): // search next closed Movie
-                            if ( t1.movies.movieLibraryArray.size() < 1) { System.out.println("Movies Library is empty"); break; }
-                            System.out.print("enter movie name for search : ");
-                            movie_name = scanner.nextLine();
-                            struct = t1.nextSession(new Movie(movie_name));
-                            break;
-                        case ("menu"): // menu
-                            System.out.println("1 - add new cinema");
-                            System.out.println("q - set cinema");
-                            System.out.println("2 - add new cinema hall + configuration");
-                            System.out.println("w - set cinema hall");
-                            System.out.println("3 - create session");
-                            System.out.println("e - set session");
-                            System.out.println("4 - change chosen cinema hall configuration");
-                            System.out.println("5 - add new movie to library");
-                            System.out.println("6 - show movies library");
-                            System.out.println("7 - show c.ch schedule");
-                            System.out.println("a - buy a ticket");
-                            System.out.println("s - search next closed Movie");
-                            break;
-                        default:break;
+                                System.out.print("enter <x, y> pos seating place : ");
+                                xy_pos = t1.intSetter(scanner, 2);
+                                parts = xy_pos.split(" ");
+                                struct.c_s.buyASeat( Integer.parseInt(parts[0]), Integer.parseInt(parts[1] ) );
+                                break;
+                            case ("s"): // search next closed Movie
+                                if ( t1.movies.movieLibraryArray.size() < 1) { System.out.println("Movies Library is empty"); break; }
+                                System.out.print("enter movie name for search : ");
+                                movie_name = scanner.nextLine();
+                                struct = t1.nextSession(new Movie(movie_name));
+                                break;
+                            case ("menu"): // menu
+                                System.out.println("1 - add new cinema");
+                                System.out.println("q - set cinema");
+                                System.out.println("2 - add new cinema hall + configuration");
+                                System.out.println("w - set cinema hall");
+                                System.out.println("3 - create session");
+                                System.out.println("e - set session");
+                                System.out.println("4 - change chosen cinema hall configuration");
+                                System.out.println("5 - add new movie to library");
+                                System.out.println("6 - show movies library");
+                                System.out.println("7 - show c.ch schedule");
+                                System.out.println("a - buy a ticket");
+                                System.out.println("s - search next closed Movie");
+                                break;
+                            default:break;
+                        }
+                        System.out.print("next command : ");
+                        scanner = new Scanner(System.in);
+                        command = scanner.nextLine();
                     }
-                    System.out.print("next command : ");
-                    scanner = new Scanner(System.in);
-                    command = scanner.nextLine();
-                }
-                break;
-            default:
-                break;
+                    break;
+                default:
+                    break;
+            }
+            while ( (sa =  t1.auth(scanner)).equals("try-again") ) { System.out.println("wrong login or pass. try again"); }
         }
-
     }
 
 }
