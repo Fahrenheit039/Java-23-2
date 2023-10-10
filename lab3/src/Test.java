@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class Test {
 //    public static void testMoviesAdd() {
@@ -9,7 +10,7 @@ public class Test {
 //    }
     static MovieLibrary movies; // = new MovieLibrary();
     static CinemaChain cinemas; // = new CinemaChain();
-    private class Closer{
+    protected static class Closer{
         Cinema c_c;
         CinemaHalls c_ch;
         Session c_s;
@@ -25,7 +26,7 @@ public class Test {
             this.c_s = c_s;
         }
     }
-    public void nextSession(Movie m){
+    public Closer nextSession(Movie m){
         Session tmp = new Session(m);
         Closer total = new Closer();
 
@@ -42,8 +43,9 @@ public class Test {
                 if (flag) break;
             }
         }
-        if (isEmpty(total)) { System.out.println("Current movie was not found, try another"); return; }
+        if (isEmpty(total)) { System.out.println("Current movie was not found, try another"); return null; }
         print(total);
+        return total;
     } // поиск интересующего фильма в ближайшее время в любом кинотеатре сети
     private Boolean isEmpty(Closer cl){
         return (cl.c_s.d.h == -1 && cl.c_s.d.m == -1 && cl.c_s.d.s == -1);
@@ -62,6 +64,31 @@ public class Test {
         System.out.println();
     }
     public void buyATicket(){}
+    protected boolean foolTest(Closer struct, int level){
+        if ( level > 0 && cinemas.cinemaChainArray.size() < 1) { System.out.println("not enough Cinemas"); return false; } else level--;
+        if ( level > 0 && struct.c_c == null ) { System.out.println("first you need set Cinema"); return false; } else level--;
+        if ( level > 0 && struct.c_c.cinemaHalls.size() < 1) { System.out.println("not enough Cinema Halls"); return false; } else level--;
+        if ( level > 0 && struct.c_ch == null ) { System.out.println("first you need set Cinema Hall"); return false; } else level--;
+        if ( level > 0 && struct.c_ch.schedule.size() < 1) { System.out.println("Session List is empty"); return false; } else level--;
+        if ( level > 0 && struct.c_s == null) { System.out.println("Session List is empty"); return false; } else level--;
+
+        return true;
+    }
+
+    private String admin_login = "admin", admin_pass = "admin";
+    private String user_login = "user", user_pass = "";
+    protected int auth(Scanner scanner){
+        System.out.print("login : ");
+        String login = scanner.nextLine();
+
+//        scanner = new Scanner(System.in);
+        System.out.print("password : ");
+        String password = scanner.nextLine();
+
+        if (admin_login.equals(login) && admin_pass.equals(password)) return 2;
+        else if (user_login.equals(login) && user_pass.equals(password)) return 1;
+        else return 0;
+    }
 
     public Test(MovieLibrary movies, CinemaChain cinemas){
         this.movies = movies;
