@@ -164,7 +164,7 @@ class CinemaHalls{
                 }
             }
         }
-        if (i == 0) return i; // if i==0 значит в коллекции 0 фильмов
+        if (i == 0) return i; // if i==0 значит в коллекции 0 фильмов ЛИБО добавляемый фильм раньше .get(0) самого первого в коллекции // TODO: 10.10.2023 чет тут муть какая-то
         if (i == schedule.size())  // if i = .size(), то у добавляемого фильма единственный сосед слева - посдедний элемент списка
             if ( crossingSessions(dToCheck) ) { return i; } else { return -1; }
         //если я дошел до этого момента, то у нужного времени есть 2 соседа: i = правый \ i-1 = левый
@@ -219,12 +219,12 @@ class CinemaHalls{
 
         int i = isAvailableByTime(d, m);
         if ( i < 0 ) { System.out.println("Current time is already reserved"); return; }
-        if ( i == 0 || i == schedule.size() ) {
+        if ( i == schedule.size() ) {
             schedule.add(new Session(d, m, hallCfg));
             System.out.println("Session is successfully created");
             return;
         }
-        if ( i > 0 && i < schedule.size() ) {
+        if ( i >= 0 && i < schedule.size() ) {
             System.out.println("Session is successfully created");
             schedule.add(i, new Session(d, m, hallCfg)); //add и remove сдвигают остальной список по индексам автоматически +rep
         }
@@ -382,6 +382,9 @@ public class TicketSystem {
         Test t1 = new Test(new MovieLibrary(), new CinemaChain());
         t1.main();
         t1.nextSession(new Movie("rembo"));
+
+
+
     }
 
 }

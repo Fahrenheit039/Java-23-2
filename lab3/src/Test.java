@@ -7,8 +7,6 @@ public class Test {
 //        }
 //        System.out.println("Все тесты пройдены!");
 //    }
-//static MovieLibrary movies = new MovieLibrary();
-//    static CinemaChain cinemas = new CinemaChain();
     static MovieLibrary movies; // = new MovieLibrary();
     static CinemaChain cinemas; // = new CinemaChain();
     private class Closer{
@@ -44,8 +42,12 @@ public class Test {
                 if (flag) break;
             }
         }
+        if (isEmpty(total)) { System.out.println("Current movie was not found, try another"); return; }
         print(total);
     } // поиск интересующего фильма в ближайшее время в любом кинотеатре сети
+    private Boolean isEmpty(Closer cl){
+        return (cl.c_s.d.h == -1 && cl.c_s.d.m == -1 && cl.c_s.d.s == -1);
+    }
     private Closer set_closer(Cinema c, CinemaHalls ch, Session s){
         Closer cl = new Closer();
         cl.c_c = c;
@@ -104,8 +106,8 @@ public class Test {
 //        cinemas.cinemaChainArray.get(index_cinema).cinemaHalls.get(index_cinemaHall)..get(index_cinemaHall).createSession(new Duration(9,0), movies.movieLibraryArray.get(index_movie));
 
         int index_movie = movies.isIn("rembo"); //проверка на существование фильма
-        if (index_movie != -1) ch.createSession(new Duration(9,0), movies.movieLibraryArray.get(index_movie));
         if (index_movie != -1) ch.createSession(new Duration(18,0), movies.movieLibraryArray.get(index_movie));
+        if (index_movie != -1) ch.createSession(new Duration(9,0), movies.movieLibraryArray.get(index_movie));
         ch.printSchedule();
 
         Session s = ch.schedule.get(0);
