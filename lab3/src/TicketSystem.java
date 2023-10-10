@@ -33,7 +33,6 @@ class MovieLibrary{
         return -1;
     } // для переданного названия кинотеатра
     public void print(){
-        if ( movieLibraryArray.size() < 1 ) { System.out.println("Movie Library is empty"); return; }
 //        Object[] movieArray = movieLibraryArray.toArray();
 //        for(Object item : movieArray){
 //            System.out.println(item);
@@ -67,7 +66,16 @@ class CinemaChain{
 } // сеть кинотеатров
 class Duration{
     protected int h, m, s;
-    public String print(){ return this.h +":"+ this.m +":"+ this.s; }
+    public String print() {
+        String tmp = "";
+        if (this.h < 10) tmp += "0";
+        tmp += this.h + ":";
+        if (this.m < 10) tmp += "0";
+        tmp += this.m + ":";
+        if (this.s < 10) tmp += "0";
+        tmp += this.s;
+        return tmp;
+    }
     protected Duration(){
         this.h = 0;
         this.m = 0;
@@ -151,7 +159,6 @@ class CinemaHalls{
     private int id;
     public int getId(){ return this.id; }
     private static int counter = 0;
-//    protected HashMap<Duration, Movie> schedule; // <время начала фильма, фильм>
     protected ArrayList<Session> schedule; // <время начала фильма, фильм>
     protected HallConfiguration hallCfg;
     public CinemaHalls(HallConfiguration hallCfg) {
@@ -162,70 +169,105 @@ class CinemaHalls{
     }
 
     private int isAvailableByTime(Duration dToCheck, Movie mToCheck){ // сделать его int и возвращать i?
+        if (schedule.size() == 0) return 0; // if i==0 значит в коллекции 0 фильмов
         int i = 0; // определяет 2 соседних сеанса в отсортированом списке от добавляемого
         while ( i < schedule.size() ) {
 //            Session tmp = schedule.get(schedule.indexOf(i)); // TODO: 08.10.2023 у меня тут indexOf(индекс принимает). а должен объект
             Session tmp = schedule.get(i);
             Duration d = tmp.d;
             Movie m = tmp.m;
-            if( d.h > mToCheck.d.h ) { break; } //пробег по отсортированному по времени списку
-            if( d.h < mToCheck.d.h ) { i++; }
-            if( d.h == mToCheck.d.h ) {
-                if( d.m > mToCheck.d.m ) { break; } //пробег по отсортированному по времени списку
-                if( d.m < mToCheck.d.m ) { i++; }
-                if( d.m == mToCheck.d.m ) {
-                    if( d.s > mToCheck.d.s ) { break; } //пробег по отсортированному по времени списку
-                    if( d.s <= mToCheck.d.s ) { i++; }
+            if( d.h > dToCheck.h ) { break; } //пробег по отсортированному по времени списку // TODO: 10.10.2023 тут случайно не dToCheck должно быть
+            if( d.h < dToCheck.h ) { i++; }
+            if( d.h == dToCheck.h ) {
+                if( d.m > dToCheck.m ) { break; } //пробег по отсортированному по времени списку
+                if( d.m < dToCheck.m ) { i++; }
+                if( d.m == dToCheck.m ) {
+                    if( d.s > dToCheck.s ) { break; } //пробег по отсортированному по времени списку
+                    if( d.s <= dToCheck.s ) { i++; }
                 }
             }
         }
-        if (i == 0) return i; // if i==0 значит в коллекции 0 фильмов ЛИБО добавляемый фильм раньше .get(0) самого первого в коллекции // TODO: 10.10.2023 чет тут муть какая-то
+//
+        if (i == 0)   // if i = 0, то у добавляемого фильма единственный сосед СПРАВА - ПЕРВЫЙ(0) элемент списка
+            if ( crossingSessions(dToCheck, mToCheck, i) ) { return i; } else { return -1; }
         if (i == schedule.size())  // if i = .size(), то у добавляемого фильма единственный сосед слева - посдедний элемент списка
-            if ( crossingSessions(dToCheck) ) { return i; } else { return -1; }
+                if ( crossingSessions(dToCheck, mToCheck, i) ) { return i; } else { return -1; }
         //если я дошел до этого момента, то у нужного времени есть 2 соседа: i = правый \ i-1 = левый
         if ( crossingSessions(dToCheck, mToCheck, i) ) { return i; } else { return -1; }
     }
-    private boolean crossingSessions(Duration dToCheck){
-        Session tmp = schedule.get(schedule.size()-1);
-        if ( tmp.d.h + tmp.m.d.h < dToCheck.h ) return true;
-        if ( tmp.d.h + tmp.m.d.h > dToCheck.h ) return false;
-        if ( tmp.d.h + tmp.m.d.h == dToCheck.h ) {
-            if( tmp.d.m + tmp.m.d.m < dToCheck.m ) { return true; }
-            if( tmp.d.m + tmp.m.d.m > dToCheck.m ) { return false; }
-            if( tmp.d.m + tmp.m.d.m == dToCheck.m ) {
-                if( tmp.d.s + tmp.m.d.s < dToCheck.s ) { return true; }
-                if( tmp.d.s + tmp.m.d.s >= dToCheck.s ) { return false; }
-            }
-        }
+    private boolean crossingSessions(Duration dToCheck, Movie mToCheck, String direction){
+
         return false; // все варианты учтены выше. тут отбивка
     } // true = не пересекаются
     private boolean crossingSessions(Duration dToCheck, Movie mToCheck, int i){
-        int flag = 0; // 2 = обе границы в порядке \\ можно будет просто убрать позже вместе с условиями flag++;
-//        #1
-        Session tmp = schedule.get(i-1);
-        if ( tmp.d.h + tmp.m.d.h < dToCheck.h ) flag++;
-        if ( tmp.d.h + tmp.m.d.h > dToCheck.h ) return false;
-        if ( tmp.d.h + tmp.m.d.h == dToCheck.h ) {
-            if( tmp.d.m + tmp.m.d.m < dToCheck.m ) { flag++; }
-            if( tmp.d.m + tmp.m.d.m > dToCheck.m ) { return false; }
-            if( tmp.d.m + tmp.m.d.m == dToCheck.m ) {
-                if( tmp.d.s + tmp.m.d.s < dToCheck.s ) { flag++; }
-                if( tmp.d.s + tmp.m.d.s >= dToCheck.s ) { return false; }
+        if ( i == schedule.size() ) { // left from new
+            Session tmp = schedule.get(schedule.size()-1);
+            if ( tmp.d.h + tmp.m.d.h < dToCheck.h ) return true;
+            if ( tmp.d.h + tmp.m.d.h > dToCheck.h ) return false;
+            if ( tmp.d.h + tmp.m.d.h == dToCheck.h ) {
+                if( tmp.d.m + tmp.m.d.m < dToCheck.m ) return true;
+                if( tmp.d.m + tmp.m.d.m > dToCheck.m ) return false;
+                if( tmp.d.m + tmp.m.d.m == dToCheck.m ) {
+                    if( tmp.d.s + tmp.m.d.s < dToCheck.s ) return true;
+                    if( tmp.d.s + tmp.m.d.s >= dToCheck.s ) return false;
+                }
             }
-        }
-//        #2
-        tmp = schedule.get(i);
-        if ( dToCheck.h + mToCheck.d.h < tmp.d.h ) flag++;
-        if ( dToCheck.h + mToCheck.d.h > tmp.d.h ) return false;
-        if ( dToCheck.h + mToCheck.d.h == tmp.d.h ) {
-            if( dToCheck.m + mToCheck.d.m < tmp.d.m ) { flag++; }
-            if( dToCheck.m + mToCheck.d.m > tmp.d.m ) { return false; }
-            if( dToCheck.m + mToCheck.d.m == tmp.d.m ) {
-                if( dToCheck.s + mToCheck.d.s < tmp.d.s ) { flag++; }
-                if( dToCheck.s + mToCheck.d.s >= tmp.d.s ) { return false; }
+        } else if ( i == 0 ) { // first // right from new
+            Session tmp = schedule.get(0);
+            if ( dToCheck.h + mToCheck.d.h < tmp.d.h ) return true;
+            if ( dToCheck.h + mToCheck.d.h > tmp.d.h ) return false;
+            if ( dToCheck.h + mToCheck.d.h == tmp.d.h ) {
+                if( dToCheck.m + mToCheck.d.m < tmp.d.m ) return true;
+                if( dToCheck.m + mToCheck.d.m > tmp.d.m ) return false;
+                if( dToCheck.m + mToCheck.d.m == tmp.d.m ) {
+                    if( dToCheck.s + mToCheck.d.s < tmp.d.s ) return true;
+                    if( dToCheck.s + mToCheck.d.s >= tmp.d.s ) return false;
+                }
             }
+        } else {
+            int flag = 0; // 2 = обе границы в порядке \\ можно будет просто убрать позже вместе с условиями flag++;
+            //        #1
+            Session tmp = schedule.get(i - 1);
+            if (tmp.d.h + tmp.m.d.h < dToCheck.h) flag++;
+            if (tmp.d.h + tmp.m.d.h > dToCheck.h) return false;
+            if (tmp.d.h + tmp.m.d.h == dToCheck.h) {
+                if (tmp.d.m + tmp.m.d.m < dToCheck.m) {
+                    flag++;
+                }
+                if (tmp.d.m + tmp.m.d.m > dToCheck.m) {
+                    return false;
+                }
+                if (tmp.d.m + tmp.m.d.m == dToCheck.m) {
+                    if (tmp.d.s + tmp.m.d.s < dToCheck.s) {
+                        flag++;
+                    }
+                    if (tmp.d.s + tmp.m.d.s >= dToCheck.s) {
+                        return false;
+                    }
+                }
+            }
+            //        #2
+            tmp = schedule.get(i);
+            if (dToCheck.h + mToCheck.d.h < tmp.d.h) flag++;
+            if (dToCheck.h + mToCheck.d.h > tmp.d.h) return false;
+            if (dToCheck.h + mToCheck.d.h == tmp.d.h) {
+                if (dToCheck.m + mToCheck.d.m < tmp.d.m) {
+                    flag++;
+                }
+                if (dToCheck.m + mToCheck.d.m > tmp.d.m) {
+                    return false;
+                }
+                if (dToCheck.m + mToCheck.d.m == tmp.d.m) {
+                    if (dToCheck.s + mToCheck.d.s < tmp.d.s) {
+                        flag++;
+                    }
+                    if (dToCheck.s + mToCheck.d.s >= tmp.d.s) {
+                        return false;
+                    }
+                }
+            }
+            if (flag == 2) return true;
         }
-        if (flag == 2) return true;
         return false; // все варианты учтены выше. тут отбивка
     } // true = не пересекаются
     public void createSession(Duration d, Movie m){
@@ -245,13 +287,8 @@ class CinemaHalls{
         }
     }
     public void printSchedule(){
-//        final Map<?, ?> map = this.schedule;
-//        for (final Map.Entry<?, ?> entry : map.entrySet()) {
-//            Duration d = (Duration) entry.getKey();
-//            Movie m = (Movie) entry.getValue();
-//            System.out.println( d.print() + " " + m.getName() );
-//        }
-        for (Session item : schedule) { System.out.println( item.d.print() +" - "+ item.getFinishTime().print() +" "+ item.m.getName() +" ("+ item.m.d.print() +")" ); }
+        for (Session item : schedule) {
+            System.out.println( item.d.print() +" - "+ item.getFinishTime().print() +" "+ item.m.getName() +" ("+ item.m.d.print() +")" ); }
     }
     public void printSchedule(Session s){
         for (Session item : schedule) {
@@ -395,7 +432,7 @@ class HallConfiguration {
 } // рассадка в зале
 
 
-// TODO: 08.10.2023 теперь надо в бесконечный цикл. кайнд оф реалтайм програм, ю ноу
+
 public class TicketSystem {
 //    protected static class Closer1{
 //        Cinema c_c;
@@ -419,7 +456,7 @@ public class TicketSystem {
 //        t1.main();
 //        t1.nextSession(new Movie("rembo"));
 
-        System.out.println("Welcome to the Ticket System");
+        System.out.println("Welcome to the Ticket System Program");
 
         Scanner scanner = new Scanner(System.in);
         int sa;
@@ -436,33 +473,38 @@ public class TicketSystem {
                 System.out.println("You are entire as a User");
                 while( !command.equals("exit") ) {
                     switch (command) {
+                        case ("6"): // show movies library
+                            if ( t1.movies.movieLibraryArray.size() < 1 ) { System.out.println("Movie Library is empty"); break; }
+                            System.out.println("List of available movies:");
+                            t1.movies.print();
+                            break;
                         case ("a"): // buy a ticket
+                            if ( ! t1.foolTest(struct, 6) ) break; // TODO: 10.10.2023 тут чет с проверкой криво. вернуться после сеттеров
+
                             System.out.print("enter <x, y> pos seating place : ");
-                            xy_pos = scanner.nextLine();
+                            xy_pos = t1.intSetter(scanner, 2);
                             parts = xy_pos.split(" ");
                             struct.c_s.buyASeat( Integer.parseInt(parts[0]), Integer.parseInt(parts[1] ) );
                             break;
                         case ("s"): // search next closed Movie
                             if ( t1.movies.movieLibraryArray.size() < 1) { System.out.println("Movies Library is empty"); break; }
-
-                            System.out.print("enter the Name of movie for search : ");
+                            System.out.print("enter movie name for search : ");
                             movie_name = scanner.nextLine();
-
-                            t1.nextSession(new Movie(movie_name));
+                            struct = t1.nextSession(new Movie(movie_name));
                             break;
                         default:break;
                     }
                     scanner = new Scanner(System.in);
                     command = scanner.nextLine();
                 }
-                break;
+                break; // TODO: 10.10.2023 продоблировать после admin'a : 6, a, s
             case(2):
                 System.out.println("You are entire with Admin roots!!");
                 while( !command.equals("exit") ) {
                     switch (command) {
                         case ("1"): // add new cinema
                             System.out.print("Enter the name for your next Cinema : ");
-                            cinema_name = scanner.nextLine();
+                            cinema_name = scanner.nextLine(); // здесь строка любая. абсолютно
                             t1.cinemas.add( new Cinema(cinema_name) );
                             System.out.println("success");
                             break;
@@ -470,7 +512,7 @@ public class TicketSystem {
                             if ( ! t1.foolTest(struct, 1) ) break;
 
                             System.out.print("set an active Cinema by name : ");
-                            cinema_name = scanner.nextLine();
+                            cinema_name = scanner.nextLine(); // any string
 
                             int index_cinema = t1.cinemas.isIn(cinema_name);
                             if (index_cinema > -1) {
@@ -483,12 +525,12 @@ public class TicketSystem {
 
                             System.out.println("Enter Hall Configuration");
                             System.out.print("name of type : ");
-                            hall_type = scanner.nextLine();
+                            hall_type = scanner.nextLine(); // any str
                             System.out.println("N x M size : ");
                             System.out.print("N = ");
-                            hall_n = scanner.nextInt();
+                            hall_n = t1.intSetter(scanner);
                             System.out.print("M = ");
-                            hall_m = scanner.nextInt();
+                            hall_m = t1.intSetter(scanner);
                             struct.c_c.addHall(new CinemaHalls(new HallConfiguration(hall_type, hall_n, hall_m)));
                             System.out.println("success");
                             break;
@@ -496,7 +538,7 @@ public class TicketSystem {
                             if ( ! t1.foolTest(struct, 3) ) break;
 
                             System.out.print("set an active Cinema Hall by id : ");
-                            cinema_hall_id = scanner.nextInt();
+                            cinema_hall_id = t1.intSetter(scanner);
 
                             int index_cinemaHall = struct.c_c.isIn(cinema_hall_id);
                             if (index_cinemaHall > -1) {
@@ -511,7 +553,7 @@ public class TicketSystem {
                             movie_name = scanner.nextLine();
 
                             System.out.print("what time does the movie start <hours, minutes> : ");
-                            movie_time_start = scanner.nextLine();
+                            movie_time_start = t1.intSetter(scanner, 2);
                             parts = movie_time_start.split(" ");
 
                             int index_movie = t1.movies.isIn(movie_name);
@@ -523,7 +565,7 @@ public class TicketSystem {
                             if ( ! t1.foolTest(struct, 5) ) break;
 
                             System.out.print("enter id of session : ");
-                            int session_id = scanner.nextInt();
+                            int session_id = t1.intSetter(scanner);
                             if ( struct.c_ch.schedule.size() <= session_id ) { System.out.println("your input is out of range"); break; }
 
                             struct.c_s = struct.c_ch.schedule.get(session_id);
@@ -537,7 +579,7 @@ public class TicketSystem {
                             struct.c_ch.hallCfg.printCfg();
                             System.out.println("Enter area <x1, y1, x2, y2, key>, ");
                             System.out.println("key = -1 : everything in area is unavailable \\ key = 1 : everything in area is available \\ key = 0 : reverse ");
-                            hall_cfg_change = scanner.nextLine();
+                            hall_cfg_change = t1.intSetter(scanner, 5);
                             parts = hall_cfg_change.split(" ");
                             struct.c_ch.hallCfg.changeCfg( Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), Integer.parseInt(parts[2]), Integer.parseInt(parts[3]), Integer.parseInt(parts[4]));
                             System.out.print("\nafter: \n");
@@ -548,19 +590,25 @@ public class TicketSystem {
                             System.out.print("name : ");
                             movie_name = scanner.nextLine();
                             System.out.print("Duration <hours, minutes> : ");
-                            movie_duration = scanner.nextLine();
+                            movie_duration = t1.intSetter(scanner, 2);
                             parts = movie_duration.split(" ");
                             t1.movies.add( new Movie( movie_name, new Duration( Integer.parseInt(parts[0]), Integer.parseInt(parts[1] )) ) );
                             break;
                         case ("6"): // show movies library
+                            if ( t1.movies.movieLibraryArray.size() < 1 ) { System.out.println("Movie Library is empty"); break; }
                             System.out.println("List of available movies:");
                             t1.movies.print();
                             break;
+                        case ("7"): // show c.ch schedule
+                            if ( ! t1.foolTest(struct, 4) ) break;
+                            System.out.println("schedule:");
+                            struct.c_ch.printSchedule();
+                            break;
                         case ("a"): // buy a ticket
-                            if ( ! t1.foolTest(struct, 6) ) break;
+                            if ( ! t1.foolTest(struct, 6) ) break; // TODO: 10.10.2023 тут чет с проверкой криво. вернуться после сеттеров
 
                             System.out.print("enter <x, y> pos seating place : ");
-                            xy_pos = scanner.nextLine();
+                            xy_pos = t1.intSetter(scanner, 2);
                             parts = xy_pos.split(" ");
                             struct.c_s.buyASeat( Integer.parseInt(parts[0]), Integer.parseInt(parts[1] ) );
                             break;
@@ -579,11 +627,14 @@ public class TicketSystem {
                             System.out.println("e - set session");
                             System.out.println("4 - change chosen cinema hall configuration");
                             System.out.println("5 - add new movie to library");
+                            System.out.println("6 - show movies library");
+                            System.out.println("7 - show c.ch schedule");
                             System.out.println("a - buy a ticket");
                             System.out.println("s - search next closed Movie");
                             break;
                         default:break;
                     }
+                    System.out.print("next command : ");
                     scanner = new Scanner(System.in);
                     command = scanner.nextLine();
                 }

@@ -43,7 +43,7 @@ public class Test {
                 if (flag) break;
             }
         }
-        if (isEmpty(total)) { System.out.println("Current movie was not found, try another"); return null; }
+        if (isEmpty(total)) { System.out.println("Current movie was not found, try another"); return null; } // TODO: 10.10.2023 чет тут очень хотел проверить 
         print(total);
         return total;
     } // поиск интересующего фильма в ближайшее время в любом кинотеатре сети
@@ -74,7 +74,31 @@ public class Test {
 
         return true;
     }
-
+    protected String intSetter(Scanner scanner, int params){
+        String tmp = scanner.nextLine();
+        String[] parts = tmp.split(" ");
+        int i;
+        boolean flag = false;
+        while ( !flag ) {
+            for ( i = 0; i < params; i++) if ( !isNumeric(parts[i]) ) break;
+            if ( i == params ) break;
+            System.out.println("your input is wrong. try again");
+            tmp = scanner.nextLine();
+            parts = tmp.split(" ");
+        }
+        return tmp;
+    }
+    protected int intSetter(Scanner scanner){
+        String tmp = scanner.nextLine();
+        while ( ! isNumeric(tmp) ) {
+            System.out.println("your input is wrong. try again");
+            tmp = scanner.nextLine();
+        }
+        return Integer.parseInt(tmp);
+    }
+    private static boolean isNumeric(String str){
+        return str != null && str.matches("[0-9]+");
+    }
     private String admin_login = "admin", admin_pass = "admin";
     private String user_login = "user", user_pass = "";
     protected int auth(Scanner scanner){
